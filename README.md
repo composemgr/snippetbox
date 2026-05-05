@@ -50,9 +50,9 @@ See `docker-compose.yaml` for complete list of configurable options.
 
 ## 📂 Volumes
 
-- `./rootfs/data/snippetbox` - Data storage
-- `./rootfs/config/snippetbox` - Data storage
-- `./rootfs/data/db/mariadb/snippetbox` - Data storage
+- `./volumes/data/snippetbox` - Data storage
+- `./volumes/config/snippetbox` - Data storage
+- `./volumes/data/db/mariadb/snippetbox` - Data storage
 
 ## 🔐 Security
 
