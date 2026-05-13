@@ -17,14 +17,38 @@ services:
     logging: *default-logging
     networks:
       - snippetbox
+      - proxy
+      - cloudflare
     ports:
       - "172.17.0.1:8089:5000"
     environment:
       TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: snippetbox-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
     volumes:
       - ./volumes/data/snippetbox:/data
+    labels:
+      - 'traefik.enable=true'
+      - 'cloudflare.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'cloudflare.service=http://snippetbox-app:5000'
+      - 'cloudflare.hostname=snippetbox.${CLOUDFLARE_ZONE_NAME:-}'
+      - 'traefik.http.routers.snippetbox-app.entrypoints=http'
+      - 'traefik.http.routers.snippetbox-app-secure.tls=true'
+      - 'traefik.http.routers.snippetbox-app.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.middlewares.snippetbox-app-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.snippetbox-app.middlewares=snippetbox-app-https-redirect'
+      - 'traefik.http.routers.snippetbox-app-secure.entrypoints=https'
+      - 'traefik.http.routers.snippetbox-app-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.routers.snippetbox-app-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.snippetbox-app-secure.service=snippetbox-app'
+      - 'traefik.http.services.snippetbox-app.loadbalancer.server.port=5000'
 
 networks:
   snippetbox:
     name: snippetbox
     external: false
+  proxy:
+    external: true
+  cloudflare:
+    external: true
