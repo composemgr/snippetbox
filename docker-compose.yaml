@@ -1,5 +1,6 @@
 # nginx proxy address - http://172.17.0.1:8089
 
+name: snippetbox
 x-logging: &default-logging
   driver: json-file
   options:
@@ -7,44 +8,23 @@ x-logging: &default-logging
     max-file: "1"
 
 services:
-  snippetbox:
+  app:
     image: pawelmalak/snippet-box:latest
+    pull_policy: always
     container_name: snippetbox-app
-    restart: unless-stopped
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
     logging: *default-logging
     networks:
       - snippetbox
     ports:
-      - "8089:5000"
+      - "172.17.0.1:8089:5000"
     environment:
       TZ: ${TZ:-America/New_York}
     volumes:
       - ./volumes/data/snippetbox:/data
-      - ./volumes/config/snippetbox:/config
-    depends_on:
-      - snippetbox-db
-
-  snippetbox-db:
-    image: mariadb:11
-    container_name: snippetbox-db
-    restart: unless-stopped
-    logging: *default-logging
-    networks:
-      - snippetbox
-    environment:
-      TZ: ${TZ:-America/New_York}
-      MARIADB_DATABASE: ${DB_CREATE_DATABASE_NAME:-snippetbox}
-      MARIADB_USER: ${DB_USER_NAME:-snippetbox}
-      MARIADB_PASSWORD: ${DB_USER_PASS:-changeme_db_password}
-      MARIADB_ROOT_PASSWORD: ${DB_ADMIN_PASS:-changeme_root_password}
-    volumes:
-      - ./volumes/data/db/mariadb/snippetbox:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
 networks:
   snippetbox:
+    name: snippetbox
     external: false
